@@ -2,15 +2,33 @@
 
 Running this script will tidy up your twitter timeline by hiding retweets (but not quoted retweets), other peoples' likes, repeated tweets, and more.
 
-Navigate to `https://twitter.com/settings/muted_keywords` and copy and paste the following script into your console.
+By default, Twitter mutes keywords from people you don't follow. To stop this from happening, before running this script go to https://twitter.com/settings/add_muted_keyword, mute `RT @` and select "From Anyone", save it, and _then_ run the script.
 
-```const delayMs = 1000; // change this if you feel like its running too fast
+```
+location.assign("https://twitter.com/settings/muted_keywords");
 
-const keywords = `ActivityTweet
+function setNativeValue(element, value) {
+  const valueSetter = Object.getOwnPropertyDescriptor(element, "value").set;
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+    Object.getPrototypeOf(element),
+    "value"
+  ).set;
+
+  if (valueSetter && valueSetter !== prototypeValueSetter) {
+    prototypeValueSetter.call(element, value);
+  } else {
+    valueSetter.call(element, value);
+  }
+}
+
+function delay(f = 1) {
+  return new Promise((res) => setTimeout(res, f * 1000));
+}
+
+`ActivityTweet
 generic_activity_highlights
 generic_activity_momentsbreaking
 RankedOrganicTweet
-RT @
 suggest_activity
 suggest_activity_feed
 suggest_activity_highlights
@@ -27,27 +45,31 @@ suggest_timeline_tweet
 suggest_who_to_follow
 suggestactivitytweet
 suggestpyletweet
-suggestrecycledtweet_inline`.split(/\W+/);
+suggestrecycledtweet_inline`
+  .split(/\W+/)
+  .reduce(async function go(prev, keyword) {
+    await prev;
 
-const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    document.querySelector('[aria-label="Add muted word or phrase"]').click();
+    await delay();
 
-const addMutedKeyword = keyword => {
-  const input = document.querySelector("[name='keyword']");
-  nativeInputValueSetter.call(input, keyword);
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-  document.querySelector("[data-testid='settingsDetailSave']").click();
-}
+    const el = document.querySelector("input[name=keyword]");
+    setNativeValue(el, keyword);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    await delay();
 
-const delay = () => {
-  return new Promise(res => setTimeout(res, delayMs));
-};
-
-keywords.reduce(async (prev, keyword) => {
-  await prev;
-  addMutedKeyword(keyword);
-  await delay();
-  document.querySelector('[aria-label="Add muted word or phrase"]').click();
-  return delay();
-}, Promise.resolve());```
+    document
+      .evaluate(
+        '//*[contains(text(), "Save")]/ancestor::*[@role = "button"]',
+        document,
+        null,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null
+      )
+      .snapshotItem(0)
+      .click();
+    return delay();
+  }, Promise.resolve());
+```
 
 Thank you to @dav1dnix and @jakebellacera for the script I'm expanding on a little here.
