@@ -1,5 +1,7 @@
 # Tidy up your twitter timeline
 
+Important note: this is copied-and-pasted from a comment I found by [@ksoda](https://gist.github.com/ksoda), I wanted to save it here for posterity.
+
 Running this script will tidy up your twitter timeline by hiding retweets (but not quoted retweets), other peoples' likes, repeated tweets, and more.
 
 By default, Twitter mutes keywords from people you don't follow. To stop this from happening, before running this script go to https://twitter.com/settings/add_muted_keyword, mute `RT @` and select "From Anyone", save it, and _then_ run the script.
@@ -71,5 +73,3 @@ suggestrecycledtweet_inline`
     return delay();
   }, Promise.resolve());
 ```
-
-Thank you to @dav1dnix and @jakebellacera for the script I'm expanding on a little here.
